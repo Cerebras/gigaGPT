@@ -21,6 +21,9 @@ import torch.nn as nn
 from transformers import GPT2Config as HFConfig
 from transformers import GPT2LMHeadModel as HFModel
 
+from cerebras.modelzoo.common.utils.model.transformer_utils import (
+    create_broadcasted_autoregressive_mask,
+)
 
 @dataclass
 class GPTConfig:
@@ -32,7 +35,7 @@ class GPTConfig:
     dropout: float = 0.0
     bias: bool = True
     init_std: float = 0.02
-
+    cls: str = None
 
 class CausalSelfAttention(nn.Module):
     def __init__(self, embed_dim, num_heads, dropout=0.0, bias=None):
@@ -93,11 +96,11 @@ class Block(nn.Module):
         super(Block, self).__init__()
 
         self.attn = CausalSelfAttention(
-            config.width, config.heads, config.dropout, config.bias,
+            config['width'], config['heads'], config['dropout'], config['bias']
         )
-        self.ln_1 = nn.LayerNorm(config.width, eps=1e-5)
-        self.ln_2 = nn.LayerNorm(config.width, eps=1e-5)
-        self.ffn = FFN(config.width, config.bias, config.dropout)
+        self.ln_1 = nn.LayerNorm(config['width'], eps=1e-5)
+        self.ln_2 = nn.LayerNorm(config['width'], eps=1e-5)
+        self.ffn = FFN(config['width'], config['bias'], config['dropout'])
 
     def forward(self, x, mask=None):
         x = x + self.attn(self.ln_1(x), attn_mask=mask)
@@ -108,16 +111,16 @@ class Block(nn.Module):
 class GPTModel(torch.nn.Module):
     def __init__(self, config):
         super().__init__()
-        self.config = config
-
-        self.wte = nn.Embedding(config.vocab_size, config.width)
-        self.wpe = nn.Embedding(config.max_position_embeddings, config.width)
-        self.drop_embd = nn.Dropout(config.dropout)
+        self.config = config['model']
+        
+        self.wte = nn.Embedding(self.config['vocab_size'], self.config['width'])
+        self.wpe = nn.Embedding(self.config['max_position_embeddings'], self.config['width'])
+        self.drop_embd = nn.Dropout(self.config['dropout'])
         self.decoder = nn.ModuleList(
-            [Block(config) for _ in range(config.depth)]
+            [Block(self.config) for _ in range(self.config['depth'])]
         )
-        self.ln_f = nn.LayerNorm(config.width, eps=1e-5)
-        self.lm_head = nn.Linear(config.width, config.vocab_size, bias=False)
+        self.ln_f = nn.LayerNorm(self.config['width'], eps=1e-5)
+        self.lm_head = nn.Linear(self.config['width'], self.config['vocab_size'], bias=False)
         self.tie_weights()
         self.reset_parameters()
 
@@ -127,16 +130,16 @@ class GPTModel(torch.nn.Module):
         for n, p in self.named_parameters():
             if n.endswith("proj.weight") or n.endswith("proj_output.weight"):
                 torch.nn.init.normal_(
-                    p, mean=0.0, std=self.config.init_std / math.sqrt(2 * self.config.depth)
+                    p, mean=0.0, std=self.config['init_std'] / math.sqrt(2 * self.config['depth'])
                 )
 
     def _init_weights(self, module):
         if isinstance(module, nn.Linear):
-            torch.nn.init.normal_(module.weight, mean=0.0, std=self.config.init_std)
+            torch.nn.init.normal_(module.weight, mean=0.0, std=self.config['init_std'])
             if module.bias is not None:
                 torch.nn.init.zeros_(module.bias)
         elif isinstance(module, nn.Embedding):
-            torch.nn.init.normal_(module.weight, mean=0.0, std=self.config.init_std)
+            torch.nn.init.normal_(module.weight, mean=0.0, std=self.config['init_std'])
 
     def tie_weights(self):
         self.lm_head.weight = self.wte.weight
@@ -144,7 +147,14 @@ class GPTModel(torch.nn.Module):
     def _post_device_transfer(self):
         self.tie_weights()
 
-    def forward(self, input_ids, labels=None):
+    def forward(self, input_id_labels_list):
+        input_ids = input_id_labels_list[0]
+        
+        if len(input_id_labels_list)== 1:
+            labels = None
+        else:
+            labels = input_id_labels_list[1]
+        
         batch_size, sequence_length = input_ids.size()
 
         x = self.wte(input_ids)
@@ -154,15 +164,13 @@ class GPTModel(torch.nn.Module):
         x += self.wpe(position_ids)
         x = self.drop_embd(x)
 
-        causal_attention_mask = torch.triu(
-            torch.ones(
-                (sequence_length, sequence_length),
-                dtype=x.dtype,
-                device=x.device,
-            ),
-            diagonal=1,
-        ).unsqueeze(0).unsqueeze(0)
-        causal_attention_mask *= torch.finfo(causal_attention_mask.dtype).min
+        causal_attention_mask = create_broadcasted_autoregressive_mask(
+            batch_size=batch_size,
+            num_heads=1,
+            tgt_seq_length=sequence_length,
+            device=x.device,
+            dtype=x.dtype,
+        )
 
         for l in self.decoder:
             x = l(x, mask=causal_attention_mask)
@@ -174,7 +182,7 @@ class GPTModel(torch.nn.Module):
 
         loss_fn = nn.CrossEntropyLoss(reduction="none")
         loss = loss_fn(
-            logits.view(-1, self.config.vocab_size), labels.view(-1).long()
+            logits.view(-1, self.config['vocab_size']), labels.view(-1).long()
         )
         loss = loss.sum() / (batch_size * sequence_length)
         loss = loss.to(logits.dtype)

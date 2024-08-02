@@ -17,7 +17,7 @@ import argparse
 import tiktoken
 import torch
 
-import cerebras_pytorch as cstorch
+import cerebras.pytorch as cstorch
 from model import GPTConfig, GPTModel
 
 parser = argparse.ArgumentParser()
@@ -29,8 +29,10 @@ parser.add_argument("--no_repeat_ngram_size", type=int, default=3)
 args = parser.parse_args()
 
 state_dict = cstorch.load(args.checkpoint_path)
-model_config = GPTConfig(**state_dict["model_config"])
+model_config_dict = state_dict['__metadata__'][0]['params']['trainer']['init']['model']
+model_config = GPTConfig(**model_config_dict)
 model, hf_config = GPTModel.load_ckpt_to_hf(state_dict["model"], model_config)
+
 
 model.eval()
 if torch.cuda.is_available():

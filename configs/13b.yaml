@@ -16,26 +16,66 @@
 # second phase of the Cerebras-GPT 13B model except for the choice of dataset
 
 # model params
-width: 5120
-depth: 40
-max_position_embeddings: 2048
-heads: 40
-init_std: 0.014
-
-# run params
-out_dir: model_dir
-dataset: /path/to/openwebtext # replace this with the correct absolute path before running
-batch_size: 1080
-sequence_length: 2048
-num_steps: 116223
-checkpoint_steps: 1000
-learning_rate: 1.2e-4
-warmup_steps: 581
-adam_epsilon: 1.0e-9
-backend: "CSX"
-precision_opt_level: 1
-mount_dirs:
-  - /path/to/code/location
-  - /path/to/data/location
-python_paths:
-  - /path/to/code/location
+trainer:
+  init:
+    # device: 'CPU'
+    seed: 1
+    backend: 
+      backend_type: 'CPU'
+      cluster_config:
+        max_act_per_csx: 1
+        num_csx: 1        
+        mount_dirs:
+         - /net/srinjoym-dev/srv/nfs/srinjoym-data/ws/giga_gpt/ #/path/to/code/location
+         - /net/srinjoym-dev/srv/nfs/srinjoym-data/ws/giga_gpt/data/shakespeare/ #/path/to/data/location        
+        python_paths:
+         - /net/srinjoym-dev/srv/nfs/srinjoym-data/ws/giga_gpt/ #/path/to/code/location
+        mgmt_address: 172.31.63.134:9000
+    model:
+      width: 5120
+      depth: 40
+      max_position_embeddings: 2048
+      heads: 40
+      vocab_size: 50257
+      dropout: 0.0
+      bias: True
+      init_std: 0.014
+    model_dir: 'out_dir/'
+    loop:
+      num_steps: 116223
+    checkpoint:
+      steps: 1000
+    precision:
+      precision_opt_level: 1
+      max_gradient_norm: 1.0
+    optimizer:
+      AdamW:
+        learning_rate: 6.0e-4
+        weight_decay: 0.1
+        eps: 1.0e-9
+    schedulers:
+      SequentialLR:
+        schedulers:
+          - LinearLR:
+              initial_learning_rate: 0.0
+              end_learning_rate: 6.0e-4
+              total_iters: 581 #TODO
+          - CosineDecayLR:
+              initial_learning_rate: 6.0e-4
+              end_learning_rate: 6.0e-5
+              total_iters: num_steps - total_iters #TODO
+    loggers:
+      - TensorBoardLogger: {}     
+  fit:
+    train_dataloader:
+      data_dir: /net/srinjoym-dev/srv/nfs/srinjoym-data/ws/giga_gpt/data/shakespeare/train.bin # replace this with the correct absolute path before running
+      sequence_length: 2048
+      batch_size: 1080      
+      seed: 1    
+  validate:
+    val_dataloader:
+      data_dir: /net/srinjoym-dev/srv/nfs/srinjoym-data/ws/giga_gpt/data/shakespeare/val.bin # replace this with the correct absolute path before running
+      sequence_length: 2048
+      batch_size: 1080      
+      seed: 1
+    # ckpt_path: /cb/home/srinjoym/ws/giga_gpt/out_dir/checkpoint_1000.mdl
