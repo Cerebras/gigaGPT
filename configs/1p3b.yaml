@@ -21,7 +21,7 @@ trainer:
     # device: 'CPU'
     seed: 1
     backend: 
-      backend_type: 'CPU'
+      backend_type: 'CSX'
       cluster_config:
         max_act_per_csx: 1
         num_csx: 1        
