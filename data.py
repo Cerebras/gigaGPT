@@ -17,7 +17,7 @@ import multiprocessing
 import numpy as np
 import torch
 
-import cerebras_pytorch.distributed as dist
+import cerebras.pytorch.distributed as dist
 
 
 class NumpyMmapDataset(torch.utils.data.Dataset):
@@ -52,10 +52,18 @@ class Sharder(torch.utils.data.Sampler):
         return l // self.num_tasks + 1 * (self.task_id < l % self.num_tasks)
 
 
-def get_dataloader(data_path, sequence_length, batch_size, seed=0):
+def get_dataloader(config):
+    
+    mode = next(iter(config))
+    data_dir = config[mode].get('data_dir', '.')
+    sequence_length = config[mode].get('sequence_length', 2048)
+    batch_size = config[mode].get('batch_size', 120)
+    seed = config[mode].get('seed', 1)
+
+
     gen = torch.Generator()
     gen.manual_seed(seed)
-    dataset = NumpyMmapDataset(data_path, sequence_length)
+    dataset = NumpyMmapDataset(data_dir, sequence_length)
     sampler = torch.utils.data.RandomSampler(dataset, generator=gen)
     sampler = torch.utils.data.BatchSampler(sampler, batch_size, drop_last=True)
     sampler = Sharder(sampler)

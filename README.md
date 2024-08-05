@@ -55,21 +55,21 @@ To train a small 111M parameter model, run the following command. This will work
 (although CPU will be too slow to get that far).
 
 ```bash
-python train.py configs/111m.yaml
+python train.py --mode train --params configs/111b.yaml
 ```
 
 To train a 70B parameter model on a single CS system, run:
 
 ```bash
-python train.py configs/70b.yaml
+python train.py --mode train --params configs/70b.yaml
 ```
 
 The 70B model will not work on GPUs due to memory limitations.
 
-Similarly, to run a 70B model on a cluster of 16 CS systems, change `num_systems` to `16` in `configs/70b.yaml` and run
+Similarly, to run a 70B model on a cluster of 16 CS systems, change `num_csx` to `16` in `configs/70b.yaml` and run
 
 ```bash
-python train.py configs/70b.yaml
+python train.py --mode train --params configs/70b.yaml
 ```
 
 Note that it's exactly the same command regardless of the number of systems you are parallelizing across.
@@ -80,7 +80,7 @@ Note that it's exactly the same command regardless of the number of systems you 
 In order to get upstream evaluation numbers, you can use the `eval.py` script, for example
 
 ```bash
-python eval.py configs/70b.yaml --checkpoint_path /path/to/checkpoint.mdl
+python eval.py --mode eval --params configs/70b.yaml
 ```
 
 ## Generation
