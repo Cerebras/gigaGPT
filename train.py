@@ -19,10 +19,11 @@ from dataclasses import asdict
 
 import torch
 
-import cerebras_pytorch as cstorch
+import cerebras.pytorch as cstorch
 from configuration import parse_args
 from data import get_dataloader
 from model import GPTModel
+from cerebras.pytorch.utils import tensorboard
 
 logging.basicConfig()
 logger = logging.getLogger(__file__)

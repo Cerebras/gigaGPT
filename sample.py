@@ -17,7 +17,7 @@ import argparse
 import tiktoken
 import torch
 
-import cerebras_pytorch as cstorch
+import cerebras.pytorch as cstorch
 from model import GPTConfig, GPTModel
 
 parser = argparse.ArgumentParser()
