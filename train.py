@@ -19,7 +19,7 @@ from dataclasses import asdict
 
 import torch
 
-import cerebras_pytorch as cstorch
+import cerebras.pytorch as cstorch
 from configuration import parse_args
 from data import get_dataloader
 from model import GPTModel
@@ -121,14 +121,16 @@ def main(model_config, config, cs_config):
         optimizer.zero_grad()
         return loss
 
-    writer = cstorch.utils.tensorboard.SummaryWriter(
+    from cerebras.pytorch.utils import tensorboard
+
+    writer = tensorboard.SummaryWriter(
         log_dir=out_dir.joinpath("train")
     )
 
     @cstorch.step_closure
     def log_loss(loss, step):
-        rate = executor.profiler.rate()
-        global_rate = executor.profiler.global_rate()
+        rate = executor.profiler.rate_tracker.rate
+        global_rate = executor.profiler.rate_tracker.global_rate
 
         logger.info(
             f"| Step={step}, "
