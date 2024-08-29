@@ -17,7 +17,7 @@ import multiprocessing
 import numpy as np
 import torch
 
-import cerebras_pytorch.distributed as dist
+import cerebras.pytorch.distributed as dist
 
 
 class NumpyMmapDataset(torch.utils.data.Dataset):

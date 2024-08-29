@@ -18,7 +18,7 @@ from typing import Union
 
 from transformers import HfArgumentParser
 
-from cerebras_pytorch.utils import CSConfig
+from cerebras.pytorch.utils import CSConfig
 from model import GPTConfig
 
 
