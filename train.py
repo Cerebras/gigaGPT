@@ -128,8 +128,8 @@ def main(model_config, config, cs_config):
 
     @cstorch.step_closure
     def log_loss(loss, step):
-        rate = executor.profiler.rate()
-        global_rate = executor.profiler.global_rate()
+        rate = executor.profiler.rate_tracker.rate
+        global_rate = executor.profiler.rate_tracker.global_rate
 
         logger.info(
             f"| Step={step}, "
