@@ -105,12 +105,7 @@ class Block(nn.Module):
         return x
 
 def create_autoregressive_mask(batch_size, num_heads, tgt_seq_length, device, dtype):
-    mask_shape = (
-        batch_size,
-        num_heads,
-        tgt_seq_length,
-        tgt_seq_length,
-    )
+    mask_shape = (batch_size, num_heads, tgt_seq_length, tgt_seq_length,)
     seq_range = torch.arange(tgt_seq_length, device=device, dtype=torch.float32)
     q_range = seq_range[:, None].broadcast_to(mask_shape)
     k_range = seq_range[None, :].broadcast_to(mask_shape)
@@ -170,13 +165,7 @@ class GPTModel(torch.nn.Module):
         x += self.wpe(position_ids)
         x = self.drop_embd(x)
 
-        causal_attention_mask = create_autoregressive_mask(
-            batch_size=batch_size,
-            num_heads=self.config.heads,
-            tgt_seq_length=sequence_length,
-            device=x.device,
-            dtype=x.dtype,
-        )
+        causal_attention_mask = create_autoregressive_mask(batch_size, self.config.heads, sequence_length, x.device, x.dtype)
 
         for l in self.decoder:
             x = l(x, mask=causal_attention_mask)
