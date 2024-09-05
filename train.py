@@ -30,10 +30,7 @@ logger.setLevel(logging.INFO)
 
 
 def main(model_config, config, cs_config):
-    if config.backend == "CSX":
-        backend = cstorch.backend(config.backend, use_cs_grad_accum=True)
-    else:
-        backend = cstorch.backend(config.backend)
+    backend = cstorch.backend(config.backend)
 
     out_dir = Path(config.out_dir)
 
