@@ -19,7 +19,7 @@ from pathlib import Path
 import torch
 from tqdm import tqdm
 
-import cerebras_pytorch as cstorch
+import cerebras.pytorch as cstorch
 from configuration import parse_args
 from data import get_dataloader
 from model import GPTModel
@@ -63,7 +63,9 @@ def main(model_config, config, cs_config):
         total_loss += loss
         total_steps += 1
 
-    writer = cstorch.utils.tensorboard.SummaryWriter(
+    from cerebras.pytorch.utils import tensorboard
+
+    writer = tensorboard.SummaryWriter(
         log_dir=out_dir.joinpath("eval")
     )
 
