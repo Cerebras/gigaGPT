@@ -1,7 +1,8 @@
-torch
-torchvision
-transformers
-tokenizers
-tiktoken
-tqdm
-cerebras_pytorch==2.0.2
+torch==2.3.0
+torchvision==0.18.0
+transformers==4.40.0
+tokenizers==0.19.1
+tiktoken==0.7.0
+tqdm==4.66.5
+cerebras_pytorch==2.3.0
+datasets==2.21.0

@@ -31,8 +31,8 @@ Here are some training curves from start of the runs of three of these configs. 
 ## Quick start
 
 ### Environment setup
-To create your python environment, simply run `pip install -r requirements.txt`. We suggest you do this
-from a virtual environment. The `requirements.txt` file contains seven simple dependencies, of which `cerebras_pytorch` is the only one which isn’t already widely used in the open-source community.
+To create your python environment, simply run `pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu` for CPU/CSX runs or `pip install -r requirements.txt` for GPU runs. We suggest you do this
+from a virtual environment. The `requirements.txt` file contains seven simple dependencies, of which `cerebras.pytorch` is the only one which isn’t already widely used in the open-source community.
 
 ### Download the datasets
 The first step is to generate the training data. The data preprocessing code is taken directly from nanoGPT

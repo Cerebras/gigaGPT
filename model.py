@@ -104,6 +104,17 @@ class Block(nn.Module):
         x = x + self.ffn(self.ln_2(x))
         return x
 
+def create_autoregressive_mask(batch_size, num_heads, tgt_seq_length, device, dtype):
+    mask_shape = (batch_size, num_heads, tgt_seq_length, tgt_seq_length,)
+    seq_range = torch.arange(tgt_seq_length, device=device, dtype=torch.float32)
+    q_range = seq_range[:, None].broadcast_to(mask_shape)
+    k_range = seq_range[None, :].broadcast_to(mask_shape)
+    diff = q_range - k_range
+    attention_mask = -diff
+    attention_mask = attention_mask.to(dtype)
+    mask_val = torch.tensor(float("-inf"), dtype=attention_mask.dtype)
+    attention_mask = torch.where(attention_mask > 0, mask_val, 0)
+    return attention_mask
 
 class GPTModel(torch.nn.Module):
     def __init__(self, config):
@@ -154,15 +165,7 @@ class GPTModel(torch.nn.Module):
         x += self.wpe(position_ids)
         x = self.drop_embd(x)
 
-        causal_attention_mask = torch.triu(
-            torch.ones(
-                (sequence_length, sequence_length),
-                dtype=x.dtype,
-                device=x.device,
-            ),
-            diagonal=1,
-        ).unsqueeze(0).unsqueeze(0)
-        causal_attention_mask *= torch.finfo(causal_attention_mask.dtype).min
+        causal_attention_mask = create_autoregressive_mask(batch_size, self.config.heads, sequence_length, x.device, x.dtype)
 
         for l in self.decoder:
             x = l(x, mask=causal_attention_mask)
