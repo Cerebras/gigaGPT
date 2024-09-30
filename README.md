@@ -20,7 +20,7 @@ gigaGPT implements the basic GPT-2 architecture in a way that matches nanoGPT. I
 
 The configurations for these models are provided in the `configs` directory. The models from 111M to 13B take their dimensions, learning rates, batch sizes, and training schedules from CerebrasGPT, compared to which they differ primarily in dataset. The 70B configuration is losely inspired by Llama-2 70B and gets its model dimensions, 2T token training schedule, and approximate batch size from that work. The 175B configuration takes the 70B configuration and modifies its model dimensions to match what was reported in the original GPT-3 paper, adjusting learning rate and initializations accordingly in line with common heuristics. Again we emphasize that these models are meant to demonstrate the scaling and performance of the model code rather than training to completion. Users will likely have to choose hyperparameters more carefully if they intend to do large-scale training runs, especially for the 70B and 175B models.
 
-Here are some training curves from start of the runs of three of these configs. Due to computational limitations we don't run all of them to convergence.
+Here are some training curves from start of the runs of three of these configs (111M, 13B and 70B respectively). Due to computational limitations we don't run all of them to convergence.
 
 ![111M](assets/111m.png)
 
