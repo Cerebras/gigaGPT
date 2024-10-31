@@ -30,12 +30,12 @@ logger.setLevel(logging.INFO)
 
 
 def main(model_config, config, cs_config):
-    backend = cstorch.backend(config.backend)
+    backend = cstorch.backend(config.backend, cluster_config=cs_config)
 
     out_dir = Path(config.out_dir)
 
     if not backend.is_cpu:
-        cstorch.amp.use_bfloat16(True)
+        cstorch.amp.set_half_dtype("bfloat16")
 
     with backend.device:
         model = GPTModel(model_config)
@@ -118,9 +118,9 @@ def main(model_config, config, cs_config):
         optimizer.zero_grad()
         return loss
 
-    from cerebras.pytorch.utils import tensorboard
+    from cerebras.pytorch.utils.tensorboard import SummaryWriter
 
-    writer = tensorboard.SummaryWriter(
+    writer = SummaryWriter(
         log_dir=out_dir.joinpath("train")
     )
 
@@ -150,8 +150,6 @@ def main(model_config, config, cs_config):
         dataloader,
         num_steps=config.num_steps - global_step,
         checkpoint_steps=config.checkpoint_steps,
-        cs_config=cs_config,
-        writer=writer,
     )
 
     for step, batch in enumerate(executor, start=global_step + 1):
