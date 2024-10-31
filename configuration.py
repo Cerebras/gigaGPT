@@ -18,7 +18,7 @@ from typing import Union
 
 from transformers import HfArgumentParser
 
-from cerebras.pytorch.utils import CSConfig
+from cerebras.pytorch.distributed import ClusterConfig
 from model import GPTConfig
 
 
@@ -62,7 +62,7 @@ def convert_optional_types(t):
 
 
 def parse_args():
-    config_classes = (GPTConfig, RunConfig, CSConfig)
+    config_classes = (GPTConfig, RunConfig, ClusterConfig)
 
     parser = argparse.ArgumentParser()
     parser.add_argument("config_file")
