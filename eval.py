@@ -30,12 +30,12 @@ logger.setLevel(logging.INFO)
 
 
 def main(model_config, config, cs_config):
-    backend = cstorch.backend(config.backend)
+    backend = cstorch.backend(config.backend, cluster_config=cs_config)
     out_dir = Path(config.out_dir)
     state_dict = cstorch.load(config.checkpoint_path)
 
     if not backend.is_cpu:
-        cstorch.amp.use_bfloat16(True)
+        cstorch.amp.set_half_dtype("bfloat16")
 
     with backend.device:
         model = GPTModel(model_config)
@@ -63,9 +63,9 @@ def main(model_config, config, cs_config):
         total_loss += loss
         total_steps += 1
 
-    from cerebras.pytorch.utils import tensorboard
+    from cerebras.pytorch.utils.tensorboard import SummaryWriter
 
-    writer = tensorboard.SummaryWriter(
+    writer = SummaryWriter(
         log_dir=out_dir.joinpath("eval")
     )
 
@@ -78,7 +78,7 @@ def main(model_config, config, cs_config):
     )
     num_steps = len(dataloader)
     executor = cstorch.utils.data.DataExecutor(
-        dataloader, num_steps=num_steps, cs_config=cs_config, writer=writer,
+        dataloader, num_steps=num_steps,
     )
 
     logger.info(f"Total eval steps: {num_steps}")
