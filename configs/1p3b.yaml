@@ -32,7 +32,6 @@ checkpoint_steps: 2000
 learning_rate: 2.0e-4
 warmup_steps: 346
 backend: "CSX"
-precision_opt_level: 1
 mount_dirs:
   - /path/to/code/location
   - /path/to/data/location
