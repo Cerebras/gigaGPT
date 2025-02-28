@@ -46,6 +46,9 @@ def main(model_config, config, cs_config):
     model.load_state_dict(state_dict["model"])
     global_step = state_dict.get("global_step", 0)
 
+    cstorch.backends.csx.debug.execute_crd_memory_gi = config.execute_crd_memory_gi
+    cstorch.backends.csx.debug.compile_crd_memory_gi = config.compile_crd_memory_gi
+
     @cstorch.trace
     @torch.no_grad()
     def eval_step(batch):

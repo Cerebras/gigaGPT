@@ -94,6 +94,9 @@ def main(model_config, config, cs_config):
     else:
         global_step = 0
 
+    cstorch.backends.csx.debug.execute_crd_memory_gi = config.execute_crd_memory_gi
+    cstorch.backends.csx.debug.compile_crd_memory_gi = config.compile_crd_memory_gi
+    
     @cstorch.checkpoint_closure
     def save_checkpoint(step):
         checkpoint_path = out_dir.joinpath(f"checkpoint_{step}.mdl")

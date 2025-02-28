@@ -40,6 +40,8 @@ class RunConfig:
     checkpoint_path: str = None
     seed: int = 0
     max_gradient_norm: float = 1.0
+    execute_crd_memory_gi: int = 32
+    compile_crd_memory_gi: int = 50
 
     def __post_init__(self):
         assert self.backend in ["CSX", "CPU", "GPU"]
