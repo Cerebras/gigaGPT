@@ -4,5 +4,5 @@ transformers==4.45.2
 tokenizers==0.20.1
 tiktoken==0.7.0
 tqdm==4.66.1
-cerebras_pytorch==0.0.0
+cerebras_pytorch==2.5.0
 datasets==2.19.1
