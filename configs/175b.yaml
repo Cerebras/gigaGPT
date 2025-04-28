@@ -33,9 +33,9 @@ learning_rate: 5.0e-6
 warmup_steps: 3317
 adam_epsilon: 1.0e-10
 backend: "CSX"
-precision_opt_level: 1
 mount_dirs:
   - /path/to/code/location
   - /path/to/data/location
 python_paths:
   - /path/to/code/location
+execute_crd_memory_gi: 100

@@ -32,7 +32,6 @@ logger.setLevel(logging.INFO)
 def main(model_config, config, cs_config):
     backend = cstorch.backend(config.backend, cluster_config=cs_config)
     out_dir = Path(config.out_dir)
-    state_dict = cstorch.load(config.checkpoint_path)
 
     if not backend.is_cpu:
         cstorch.amp.set_half_dtype("bfloat16")
@@ -45,6 +44,10 @@ def main(model_config, config, cs_config):
     state_dict = cstorch.load(config.checkpoint_path)
     model.load_state_dict(state_dict["model"])
     global_step = state_dict.get("global_step", 0)
+    del state_dict
+
+    cstorch.backends.csx.debug.execute_crd_memory_gi = config.execute_crd_memory_gi
+    cstorch.backends.csx.debug.compile_crd_memory_gi = config.compile_crd_memory_gi
 
     @cstorch.trace
     @torch.no_grad()
@@ -91,7 +94,6 @@ def main(model_config, config, cs_config):
     avg_loss = total_loss / total_steps
     writer.add_scalar("loss", avg_loss, global_step)
     logger.info(f"Average eval loss: {avg_loss}")
-
 
 if __name__ == "__main__":
     model_config, run_config, cs_config = parse_args()
