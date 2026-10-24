@@ -95,7 +95,7 @@ See `sample.py` for more information on the different options you can play with 
 generation quality.
 
 ## Codebase comparison
-The standard way to train a GPT-3 sized model is to use frameworks such as Nvidia Megatron. Megatron however is a large and complex framework that’s challenging to implement. This is what motivated the creation of nanoGPT – a light, readable, hackable framework. To quantify the complexity of these frameworks, we counted the lines of code in reach repo. Megatron has 20,507, lines of code while nanoGPT and gigaGPT have 639 and 565 lines of code respectively. This supports our primary claim that gigaGPT trains GPT-3 sized models while retaining the simplicity of nanoGPT.
+The standard way to train a GPT-3 sized model is to use frameworks such as Nvidia Megatron. Megatron however is a large and complex framework that’s challenging to implement. This is what motivated the creation of nanoGPT – a light, readable, hackable framework. To quantify the complexity of these frameworks, we counted the lines of code in each repo. Megatron has 20,507 lines of code while nanoGPT and gigaGPT have 639 and 565 lines of code respectively. This supports our primary claim that gigaGPT trains GPT-3 sized models while retaining the simplicity of nanoGPT.
 
 Megatron-LM
 
